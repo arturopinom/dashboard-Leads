@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Leads - Análisis Estratégico</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid #d2d2d7;
+            padding: 2rem 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #1d1d1f;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.125rem;
+            color: #6e6e73;
+            font-weight: 400;
+        }
+
+        .year-selector {
+            display: flex;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .year-btn {
+            padding: 0.875rem 2rem;
+            border-radius: 980px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            color: #1d1d1f;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .year-btn.active {
+            background: #0071e3;
+            color: white;
+            box-shadow: 0 4px 16px rgba(0,113,227,0.3);
+        }
+
+        .year-btn:hover:not(.active) {
+            background: #f5f5f7;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 18px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: #6e6e73;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .metric-subtitle {
+            font-size: 0.875rem;
+            color: #86868b;
+        }
+
+        .comparison-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .badge-up {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-down {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 18px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #1d1d1f;
+        }
+
+        .channel-analysis {
+            background: white;
+            border-radius: 18px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .channel-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 0;
+            border-bottom: 1px solid #f5f5f7;
+        }
+
+        .channel-item:last-child {
+            border-bottom: none;
+        }
+
+        .channel-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .channel-rank {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .channel-info {
+            flex: 1;
+        }
+
+        .channel-name {
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 0.25rem;
+        }
+
+        .channel-percentage {
+            font-size: 0.875rem;
+            color: #86868b;
+        }
+
+        .channel-right {
+            text-align: right;
+        }
+
+        .channel-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 0.25rem;
+        }
+
+        .channel-trend {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .trend-up { color: #34c759; }
+        .trend-down { color: #ff3b30; }
+        .trend-neutral { color: #86868b; }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #f5f5f7;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 0.75rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.6s ease;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .insight-card {
+            padding: 2rem;
+            border-radius: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .insight-card.blue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .insight-card.green {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .insight-card.orange {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .insight-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .insight-item {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            align-items: flex-start;
+        }
+
+        .insight-icon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .insight-text {
+            font-size: 0.938rem;
+            line-height: 1.5;
+            opacity: 0.95;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: #86868b;
+        }
+
+        .update-info {
+            background: #f5f5f7;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+            color: #6e6e73;
+        }
+
+        .update-info strong {
+            color: #1d1d1f;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .year-selector {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>Dashboard de Leads</h1>
+            <p class="subtitle">Análisis estratégico para toma de decisiones</p>
+        </div>
+    </div>
+
+    <div class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+        <div class="update-info">
+            💡 <strong>Actualiza tus datos:</strong> Edita el archivo <code>data.json</code> en GitHub y los cambios se reflejarán automáticamente aquí.
+        </div>
+
+        <div class="year-selector">
+            <button class="year-btn active" onclick="changeYear('2024')">2024</button>
+            <button class="year-btn" onclick="changeYear('2025')">2025</button>
+            <button class="year-btn" onclick="changeYear('comparison')">Comparación 24 vs 25</button>
+        </div>
+
+        <div id="loading" class="loading">
+            <h2>⏳ Cargando datos...</h2>
+        </div>
+
+        <div id="dashboard" style="display: none;">
+            <div class="metrics-grid" id="metricsGrid"></div>
+
+            <div class="chart-container">
+                <h2 class="chart-title" id="chartTitle">Evolución Mensual</h2>
+                <canvas id="mainChart" height="80"></canvas>
+            </div>
+
+            <div class="channel-analysis">
+                <h2 class="chart-title">Análisis de Canales</h2>
+                <div id="channelList"></div>
+            </div>
+
+            <div class="insights-grid" id="insightsGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        let leadsData = {};
+        let currentYear = '2024';
+        let mainChart = null;
+
+        // Cargar datos desde el archivo JSON
+        async function loadData() {
+            try {
+                const response = await fetch('data.json');
+                leadsData = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                
+                updateMetrics();
+                updateChart();
+                updateChannelAnalysis();
+                updateInsights();
+            } catch (error) {
+                document.getElementById('loading').innerHTML = `
+                    <h2>❌ Error al cargar datos</h2>
+                    <p>No se pudo cargar el archivo data.json. Verifica que esté en la misma carpeta.</p>
+                `;
+                console.error('Error cargando datos:', error);
+            }
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('es-ES').format(Math.round(num));
+        }
+
+        function getActiveMonths(year) {
+            const data = leadsData[year];
+            const activeCount = data.total.filter(val => val > 0).length;
+            return {
+                months: data.months.slice(0, activeCount),
+                total: data.total.slice(0, activeCount),
+                categories: Object.keys(data.categories).reduce((acc, cat) => {
+                    acc[cat] = data.categories[cat].slice(0, activeCount);
+                    return acc;
+                }, {})
+            };
+        }
+
+        function calculateMetrics(year) {
+            const activeData = getActiveMonths(year);
+            const categories = activeData.categories;
+            
+            const totalLeads = activeData.total.reduce((a, b) => a + b, 0);
+            
+            let categoryTotals = {};
+            Object.keys(categories).forEach(cat => {
+                const sum = categories[cat].reduce((a, b) => a + b, 0);
+                if (sum > 0) {
+                    categoryTotals[cat] = sum;
+                }
+            });
+
+            const avgMonthly = totalLeads / activeData.months.length;
+            const monthlyTotals = activeData.total;
+
+            const last3 = monthlyTotals.slice(-3).reduce((a, b) => a + b, 0);
+            const prev3 = monthlyTotals.slice(-6, -3).reduce((a, b) => a + b, 0);
+            const trend = prev3 > 0 ? ((last3 - prev3) / prev3 * 100) : 0;
+
+            const maxMonth = Math.max(...monthlyTotals);
+            const maxMonthIdx = monthlyTotals.indexOf(maxMonth);
+
+            const bestCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
+            const topChannelPercentage = bestCategory ? (bestCategory[1] / totalLeads * 100) : 0;
+
+            return {
+                totalLeads,
+                avgMonthly,
+                trend,
+                maxMonth,
+                maxMonthName: activeData.months[maxMonthIdx],
+                bestCategory,
+                categoryTotals,
+                monthlyTotals,
+                topChannelPercentage,
+                activeMonthsCount: activeData.months.length
+            };
+        }
+
+        function calculateComparison() {
+            const active2024 = getActiveMonths('2024');
+            const active2025 = getActiveMonths('2025');
+            
+            const minMonths = Math.min(active2024.months.length, active2025.months.length);
+            
+            const months2024 = active2024.total.slice(0, minMonths);
+            const months2025 = active2025.total.slice(0, minMonths);
+            
+            const total2024 = months2024.reduce((a, b) => a + b, 0);
+            const total2025 = months2025.reduce((a, b) => a + b, 0);
+            const diff = total2025 - total2024;
+            const diffPercent = total2024 > 0 ? (diff / total2024 * 100) : 0;
+
+            const avg2025 = total2025 / minMonths;
+            const remainingMonths = 12 - active2025.months.length;
+            const projection = total2025 + (avg2025 * remainingMonths);
+
+            return {
+                total2024,
+                total2025,
+                diff,
+                diffPercent,
+                projection,
+                comparisonMonths: minMonths
+            };
+        }
+
+        function updateMetrics() {
+            const grid = document.getElementById('metricsGrid');
+            
+            if (currentYear === 'comparison') {
+                const comp = calculateComparison();
+                const metrics2024Full = calculateMetrics('2024');
+                const metrics2025 = calculateMetrics('2025');
+                
+                grid.innerHTML = `
+                    <div class="metric-card">
+                        <div class="metric-label">2024 (primeros ${comp.comparisonMonths} meses)</div>
+                        <div class="metric-value">${formatNumber(comp.total2024)}</div>
+                        <div class="metric-subtitle">leads acumulados</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">2025 (primeros ${comp.comparisonMonths} meses)</div>
+                        <div class="metric-value">${formatNumber(comp.total2025)}</div>
+                        <div class="comparison-badge ${comp.diff > 0 ? 'badge-up' : 'badge-down'}">
+                            ${comp.diff > 0 ? '▲' : '▼'} ${Math.abs(comp.diffPercent).toFixed(1)}% vs 2024
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Proyección 2025</div>
+                        <div class="metric-value">${formatNumber(comp.projection)}</div>
+                        <div class="metric-subtitle">estimado a dic 2025</div>
+                        <div class="comparison-badge ${comp.projection > metrics2024Full.totalLeads ? 'badge-up' : 'badge-down'}">
+                            ${comp.projection > metrics2024Full.totalLeads ? '▲' : '▼'} ${Math.abs(((comp.projection - metrics2024Full.totalLeads) / metrics2024Full.totalLeads * 100)).toFixed(1)}% vs total 2024
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Total 2024 Completo</div>
+                        <div class="metric-value">${formatNumber(metrics2024Full.totalLeads)}</div>
+                        <div class="metric-subtitle">año completo</div>
+                    </div>
+                `;
+            } else {
+                const metrics = calculateMetrics(currentYear);
+                
+                let riskLevel = 'bajo';
+                let riskText = 'Bajo';
+                
+                if (metrics.topChannelPercentage > 40) {
+                    riskLevel = 'alto';
+                    riskText = 'Alto';
+                } else if (metrics.topChannelPercentage > 30) {
+                    riskLevel = 'medio';
+                    riskText = 'Medio';
+                }
+                
+                grid.innerHTML = `
+                    <div class="metric-card">
+                        <div class="metric-label">Total de Leads</div>
+                        <div class="metric-value">${formatNumber(metrics.totalLeads)}</div>
+                        <div class="metric-subtitle">${currentYear} (${metrics.activeMonthsCount} meses)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Promedio Mensual</div>
+                        <div class="metric-value">${formatNumber(metrics.avgMonthly)}</div>
+                        <div class="metric-subtitle">leads/mes</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Tendencia (3 meses)</div>
+                        <div class="metric-value" style="color: ${metrics.trend > 0 ? '#34c759' : metrics.trend < 0 ? '#ff3b30' : '#1d1d1f'}">
+                            ${metrics.trend > 0 ? '+' : ''}${metrics.trend.toFixed(1)}%
+                        </div>
+                        <div class="metric-subtitle">${metrics.trend > 0 ? 'Crecimiento' : metrics.trend < 0 ? 'Declive' : 'Estable'}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Riesgo Concentración</div>
+                        <div class="metric-value" style="color: ${riskLevel === 'alto' ? '#ff3b30' : riskLevel === 'medio' ? '#ff9500' : '#34c759'}; font-size: 2rem;">
+                            ${riskText}
+                        </div>
+                        <div class="metric-subtitle">${metrics.topChannelPercentage.toFixed(0)}% en un canal</div>
+                    </div>
+                `;
+            }
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('mainChart');
+            const titleEl = document.getElementById('chartTitle');
+
+            if (mainChart) {
+                mainChart.destroy();
+            }
+
+            if (currentYear === 'comparison') {
+                titleEl.textContent = 'Comparación 2024 vs 2025 (mismo período)';
+                
+                const active2024 = getActiveMonths('2024');
+                const active2025 = getActiveMonths('2025');
+                const minMonths = Math.min(active2024.months.length, active2025.months.length);
+                
+                const months = active2024.months.slice(0, minMonths);
+                const totals2024 = active2024.total.slice(0, minMonths);
+                const totals2025 = active2025.total.slice(0, minMonths);
+
+                mainChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: [
+                            {
+                                label: '2024',
+                                data: totals2024,
+                                backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                                borderColor: '#667eea',
+                                borderWidth: 2
+                            },
+                            {
+                                label: '2025',
+                                data: totals2025,
+                                backgroundColor: 'rgba(52, 199, 89, 0.7)',
+                                borderColor: '#34c759',
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                titleColor: '#1d1d1f',
+                                bodyColor: '#6e6e73',
+                                borderColor: '#d2d2d7',
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + formatNumber(context.parsed.y);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: '#f5f5f7' },
+                                ticks: {
+                                    callback: function(value) {
+                                        return formatNumber(value);
+                                    },
+                                    font: { size: 11 },
+                                    color: '#86868b'
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { size: 11 },
+                                    color: '#86868b'
+                                }
+                            }
+                        }
+                    }
+                });
+            } else {
+                titleEl.textContent = 'Evolución Mensual';
+                
+                const activeData = getActiveMonths(currentYear);
+                const colors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b'];
+                
+                const datasets = Object.keys(activeData.categories).map((cat, idx) => {
+                    return {
+                        label: cat,
+                        data: activeData.categories[cat],
+                        borderColor: colors[idx],
+                        backgroundColor: colors[idx] + '20',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 2
+                    };
+                });
+
+                datasets.push({
+                    label: 'TOTAL',
+                    data: activeData.total,
+                    borderColor: '#1d1d1f',
+                    backgroundColor: '#1d1d1f10',
+                    tension: 0.4,
+                    fill: false,
+                    borderWidth: 3,
+                    borderDash: [5, 5]
+                });
+
+                mainChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: activeData.months,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                titleColor: '#1d1d1f',
+                                bodyColor: '#6e6e73',
+                                borderColor: '#d2d2d7',
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + formatNumber(context.parsed.y);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: '#f5f5f7' },
+                                ticks: {
+                                    callback: function(value) {
+                                        return formatNumber(value);
+                                    },
+                                    font: { size: 11 },
+                                    color: '#86868b'
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { size: 11 },
+                                    color: '#86868b'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateChannelAnalysis() {
+            if (currentYear === 'comparison') {
+                document.querySelector('.channel-analysis').style.display = 'none';
+                return;
+            }
+            
+            document.querySelector('.channel-analysis').style.display = 'block';
+            const metrics = calculateMetrics(currentYear);
+            const activeData = getActiveMonths(currentYear);
+            const channelList = document.getElementById('channelList');
+            
+            const analysis = Object.entries(metrics.categoryTotals).map(([name, total]) => {
+                const categoryData = activeData.categories[name];
+                const last3 = categoryData.slice(-3).reduce((a, b) => a + b, 0);
+                const prev3 = categoryData.slice(-6, -3).reduce((a, b) => a + b, 0);
+                const trend = prev3 > 0 ? ((last3 - prev3) / prev3 * 100) : 0;
+                const percentage = (total / metrics.totalLeads * 100).toFixed(1);
+                
+                return { name, total, trend, percentage };
+            }).sort((a, b) => b.total - a.total);
+
+            channelList.innerHTML = analysis.map((item, idx) => {
+                const trendClass = item.trend > 5 ? 'trend-up' : item.trend < -5 ? 'trend-down' : 'trend-neutral';
+                return `
+                    <div class="channel-item">
+                        <div class="channel-left">
+                            <div class="channel-rank">${idx + 1}</div>
+                            <div class="channel-info">
+                                <div class="channel-name">${item.name}</div>
+                                <div class="channel-percentage">${item.percentage}% del total</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${item.percentage}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="channel-right">
+                            <div class="channel-value">${formatNumber(item.total)}</div>
+                            <div class="channel-trend ${trendClass}">
+                                ${item.trend > 0 ? '+' : ''}${item.trend.toFixed(1)}%
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateInsights() {
+            const grid = document.getElementById('insightsGrid');
+            
+            if (currentYear === 'comparison') {
+                const comp = calculateComparison();
+                const metrics2024 = calculateMetrics('2024');
+                const metrics2025 = calculateMetrics('2025');
+                
+                grid.innerHTML = `
+                    <div class="insight-card blue">
+                        <h3 class="insight-title">📊 Análisis Comparativo</h3>
+                        <div class="insight-item">
+                            <div class="insight-icon">📈</div>
+                            <div class="insight-text">2025 va ${comp.diffPercent > 0 ? 'mejor' : 'peor'} que 2024 con <strong>${Math.abs(comp.diffPercent).toFixed(1)}%</strong> de diferencia</div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon">🎯</div>
+                            <div class="insight-text">Proyección anual 2025: <strong>${formatNumber(comp.projection)} leads</strong></div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon">📅</div>
+                            <div class="insight-text">${comp.projection > metrics2024.totalLeads ? 'Superaremos' : 'No alcanzaremos'} el total de 2024 (${formatNumber(metrics2024.totalLeads)})</div>
+                        </div>
+                    </div>
+                    <div class="insight-card green">
+                        <h3 class="insight-title">💡 Recomendaciones</h3>
+                        <div class="insight-item">
+                            <div class="insight-icon">${comp.diffPercent < 0 ? '⚠️' : '✅'}</div>
+                            <div class="insight-text">${comp.diffPercent < 0 ? 'Acelerar esfuerzos para compensar la diferencia' : '¡Mantener el ritmo! Vamos por buen camino'}</div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon">🚀</div>
+                            <div class="insight-text">Meta restante: <strong>${formatNumber(comp.projection - comp.total2025)} leads</strong></div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon">💎</div>
+                            <div class="insight-text">Enfoque: ${metrics2025.bestCategory ? metrics2025.bestCategory[0] : 'Múltiples canales'}</div>
+                        </div>
+                    </div>
+                    <div class="insight-card orange">
+                        <h3 class="insight-title">⚡ Performance</h3>
+                        <div class="insight-item">
+                            <div class="insight-icon">📊</div>
+                            <div class="insight-text">Mejor mes 2024: <strong>${metrics2024.maxMonthName}</strong> (${formatNumber(metrics2024.maxMonth)} leads)</div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon">📈</div>
+                            <div class="insight-text">Mejor mes 2025: <strong>${metrics2025.maxMonthName}</strong> (${formatNumber(metrics2025.maxMonth)} leads)</div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon">🎲</div>
+                            <div class="insight-text">Promedio diario 2025: <strong>${formatNumber(metrics2025.avgMonthly / 30)}</strong> leads/día</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const metrics = calculateMetrics(currentYear);
+                
+                let riskLevel = 'bajo';
+                let riskEmoji = '✅';
+                let riskMessage = 'Buena diversificación de canales';
+                
+                if (metrics.topChannelPercentage > 40) {
+                    riskLevel = 'alto';
+                    riskEmoji = '⚠️';
+                    riskMessage = 'Alta dependencia en un solo canal - diversificar urgente';
+                } else if (metrics.topChannelPercentage > 30) {
+                    riskLevel = 'medio';
+                    riskEmoji = '⚡';
+                    riskMessage = 'Dependencia moderada - considerar diversificar';
+                }
+                
+                grid.innerHTML = `
+                    <div class="insight-card blue">
+                        <h3 class="insight-title">📊 Insights Clave</h3>
+                        <div class="insight-item">
+                            <div class="insight-icon">🎯</div>
+                            <div class="insight-text">Mejor mes: <strong>${metrics.maxMonthName}</strong> con ${formatNumber(metrics.maxMonth)} leads</div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon">📈</div>
+                            <div class="insight-text"><strong>${metrics.bestCategory ? metrics.bestCategory[0] : 'N/A'}</strong> genera el ${metrics.topChannelPercentage.toFixed(0)}% de los leads</div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon">📊</div>
+                            <div class="insight-text">Promedio diario: <strong>${formatNumber(metrics.avgMonthly / 30)} leads/día</strong></div>
+                        </div>
+                    </div>
+                    <div class="insight-card green">
+                        <h3 class="insight-title">💡 Recomendaciones</h3>
+                        ${metrics.trend < 0 ? `
+                        <div class="insight-item">
+                            <div class="insight-icon">⚠️</div>
+                            <div class="insight-text">Tendencia negativa. Revisar estrategias de los últimos 3 meses</div>
+                        </div>
+                        ` : metrics.trend > 10 ? `
+                        <div class="insight-item">
+                            <div class="insight-icon">🚀</div>
+                            <div class="insight-text">¡Excelente crecimiento! Continuar con estrategias actuales</div>
+                        </div>
+                        ` : ''}
+                        <div class="insight-item">
+                            <div class="insight-icon">🎯</div>
+                            <div class="insight-text">Objetivo sugerido: <strong>${formatNumber(metrics.avgMonthly * 1.15)} leads/mes</strong> (+15%)</div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon">💎</div>
+                            <div class="insight-text">Duplicar esfuerzos en <strong>${metrics.bestCategory ? metrics.bestCategory[0] : 'canal principal'}</strong></div>
+                        </div>
+                    </div>
+                    <div class="insight-card orange">
+                        <h3 class="insight-title">⚡ Análisis de Riesgo</h3>
+                        <div class="insight-item">
+                            <div class="insight-icon">${riskEmoji}</div>
+                            <div class="insight-text"><strong>Riesgo ${riskLevel.toUpperCase()}</strong>: ${riskMessage}</div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon">📊</div>
+                            <div class="insight-text">${metrics.topChannelPercentage.toFixed(0)}% concentrado en canal principal</div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-icon">🎲</div>
+                            <div class="insight-text">${riskLevel === 'alto' ? 'Aumentar inversión en canales secundarios' : 'Mantener equilibrio actual entre canales'}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function changeYear(year) {
+            currentYear = year;
+            
+            document.querySelectorAll('.year-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            updateMetrics();
+            updateChart();
+            updateChannelAnalysis();
+            updateInsights();
+        }
+
+        // Cargar datos al iniciar
+        window.addEventListener('load', loadData);
+    </script>
+</body>
+</html>
